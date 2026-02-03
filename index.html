@@ -1,17 +1,38 @@
 <!DOCTYPE html>
-<html>
+<html lang="ku" dir="rtl">
 <head>
+    <meta charset="UTF-8"> 
     <title>Kurde Store</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    
     <style>
-        body { font-family: -apple-system, sans-serif; text-align: center; padding: 50px; }
-        .btn { background: #007aff; color: white; padding: 15px 25px; text-decoration: none; border-radius: 10px; font-weight: bold; }
+        /* Using a system font stack that supports Kurdish/Arabic characters */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, -apple-system; 
+            text-align: center; 
+            padding: 50px; 
+            background-color: #f2f2f7;
+            line-height: 1.6;
+        }
+        .btn { 
+            background: #007aff; 
+            color: white; 
+            padding: 15px 25px; 
+            text-decoration: none; 
+            border-radius: 12px; 
+            font-weight: bold; 
+            display: inline-block;
+            margin-top: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 { color: #1c1c1e; }
+        p { color: #3a3a3c; font-size: 18px; }
     </style>
 </head>
 <body>
     <h1>بەخێربێیت بۆ کوردی ستۆر</h1>
-    <p>ئایفۆنەکەت/ئایپادەکەی تۆماربکە لیرە udid </p>
-    <br><br>
-    <a href="enroll.mobileconfig?v=1" class="btn" download>بەژداری کردن</a>
+    <p>ئایفۆنەکەت/ئایپادەکەی تۆماربکە لێرە (UDID)</p>
+    
+    <a href="enroll.mobileconfig?v=1" class="btn">بەژداری کردن</a>
 </body>
 </html>
