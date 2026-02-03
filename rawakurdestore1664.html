@@ -17,15 +17,17 @@
         .btn-red { background: #ff3b30; color: white; padding: 6px; font-size: 11px; width: auto; }
         .admin-item { display: flex; align-items: center; background: #1c1c1e; padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 0.5px solid #3a3a3c; }
         .admin-item img { width: 45px; height: 45px; border-radius: 10px; margin-right: 15px; }
-        pre { background: #111; padding: 10px; border-radius: 8px; font-size: 10px; color: #30d158; max-height: 80px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+        pre { background: #111; padding: 10px; border-radius: 8px; font-size: 10px; color: #30d158; max-height: 100px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+        #version-tag { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: #444; }
     </style>
 </head>
 <body>
 
 <div id="login-screen">
     <h1>Admin Login</h1>
+    <p style="color: #8e8e93; font-size: 13px;">Kurde Store System v2.0</p>
     <input type="password" id="passInput" placeholder="Enter Password">
-    <button class="btn btn-blue" onclick="checkPass()">Unlock System</button>
+    <button class="btn btn-blue" onclick="checkPass()">Unlock Master Panel</button>
 </div>
 
 <div id="admin-content">
@@ -36,13 +38,13 @@
             <input type="text" id="name" placeholder="e.g. Minecraft" required>
             
             <label>2. IPA Link (Direct Download Link)</label>
-            <input type="text" id="ipa_direct" placeholder="https://your-storage.com/app.ipa">
+            <input type="text" id="ipa_direct" placeholder="https://..." required>
             
             <button type="button" class="btn btn-blue" onclick="generateAndDownload()">Generate & Download .plist</button>
             
             <hr style="border: 0.5px solid #3a3a3c; margin: 25px 0;">
 
-            <label>3. Final Plist URL (After uploading to /plists/)</label>
+            <label>3. Final Plist URL (Upload to /plists/)</label>
             <input type="text" id="plist_url" placeholder="https://kurde.store/plists/file.plist" required>
 
             <label>4. Icon URL (From /assets/)</label>
@@ -53,10 +55,9 @@
                 <div style="flex:1"><label>Version</label><input type="text" id="version" placeholder="1.0"></div>
             </div>
 
-            <button type="submit" class="btn btn-green">Publish to Kurde Store</button>
+            <button type="submit" class="btn btn-green">Publish to Store</button>
         </form>
         <div id="plistPreview" style="display:none; margin-top:15px;">
-            <p style="font-size:11px; color:#8e8e93;">Copy this code if download fails:</p>
             <pre id="plistCode"></pre>
         </div>
     </div>
@@ -67,67 +68,30 @@
     </div>
 </div>
 
+<div id="version-tag">Update: Feb 2026 | Direct-Pass-Mode</div>
+
 <script>
     const API_URL = "https://wgcdclia51.execute-api.eu-west-2.amazonaws.com";
     
-    // Hash for: didoxrawa2027
-    const MASTER_HASH = "7141569426f4f346808794c48972e0941865239a9c402128b9658253a817684f"; 
-
-    async function checkPass() {
-        // Automatically fixes spaces and capital letters
-        const rawInput = document.getElementById('passInput').value;
-        const cleanInput = rawInput.trim().toLowerCase();
+    // DIRECT PASSWORD CHECK
+    function checkPass() {
+        const input = document.getElementById('passInput').value.trim();
         
-        const msgUint8 = new TextEncoder().encode(cleanInput);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const hashedInput = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-        if (hashedInput === MASTER_HASH) {
+        if (input === "didoxrawa2027") {
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('admin-content').style.display = 'flex';
             loadAdminList();
         } else {
-            alert("Unauthorized Access. Verify the password.");
+            alert("Unauthorized. If you forgot your password, check your GitHub code.");
         }
     }
 
     function generateAndDownload() {
         const name = document.getElementById('name').value;
         const ipa = document.getElementById('ipa_direct').value;
-        if(!name || !ipa) return alert("Please enter App Name and IPA Link!");
+        if(!name || !ipa) return alert("Missing Info!");
 
-        const plist = `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>items</key>
-    <array>
-        <dict>
-            <key>assets</key>
-            <array>
-                <dict>
-                    <key>kind</key>
-                    <string>software-package</string>
-                    <key>url</key>
-                    <string>${ipa}</string>
-                </dict>
-            </array>
-            <key>metadata</key>
-            <dict>
-                <key>bundle-identifier</key>
-                <string>com.kurde.${name.toLowerCase().replace(/\\s/g, '')}</string>
-                <key>bundle-version</key>
-                <string>1.0</string>
-                <key>kind</key>
-                <string>software</string>
-                <key>title</key>
-                <string>${name}</string>
-            </dict>
-        </dict>
-    </array>
-</dict>
-</plist>`;
+        const plist = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>items</key><array><dict><key>assets</key><array><dict><key>kind</key><string>software-package</string><key>url</key><string>${ipa}</string></dict></array><key>metadata</key><dict><key>bundle-identifier</key><string>com.kurde.${name.toLowerCase().replace(/\\s/g, '')}</string><key>bundle-version</key><string>1.0</string><key>kind</key><string>software</string><key>title</key><string>${name}</string></dict></dict></array></dict></plist>`;
         
         document.getElementById('plistCode').innerText = plist;
         document.getElementById('plistPreview').style.display = "block";
@@ -137,9 +101,7 @@
         const a = document.createElement('a');
         a.href = url;
         a.download = `${name.toLowerCase().replace(/\\s/g, '_')}.plist`;
-        document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
     }
 
     document.getElementById('appForm').onsubmit = async (e) => {
@@ -151,54 +113,38 @@
             icon: document.getElementById('icon').value,
             ipa: document.getElementById('plist_url').value
         };
-        
-        try {
-            const response = await fetch(`${API_URL}/add-app`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            if(response.ok) {
-                alert("App published successfully!");
-                loadAdminList();
-                document.getElementById('appForm').reset();
-            }
-        } catch (err) {
-            alert("Error publishing app. Check API connection.");
-        }
+        await fetch(`${API_URL}/add-app`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        alert("Published!");
+        loadAdminList();
     };
 
     async function loadAdminList() {
-        try {
-            const res = await fetch(`${API_URL}/get-apps`);
-            const items = await res.json();
-            const listDiv = document.getElementById('admin-list');
-            listDiv.innerHTML = items.map(item => `
-                <div class="admin-item">
-                    <img src="${item.icon || 'https://kurde.store/assets/default.png'}" onerror="this.src='https://via.placeholder.com/45'">
-                    <div style="flex-grow:1">
-                        <div><b>${item.name}</b></div>
-                        <small style="color:gray">${item.category} - v${item.version}</small>
-                    </div>
-                    <button class="btn-red" onclick="deleteApp('${item.appId}')">Delete</button>
-                </div>`).join('');
-        } catch (err) {
-            document.getElementById('admin-list').innerText = "Failed to load database.";
-        }
+        const res = await fetch(`${API_URL}/get-apps`);
+        const items = await res.json();
+        const listDiv = document.getElementById('admin-list');
+        listDiv.innerHTML = items.map(item => `
+            <div class="admin-item">
+                <img src="${item.icon}">
+                <div style="flex-grow:1">
+                    <div><b>${item.name}</b></div>
+                    <small style="color:gray">${item.category}</small>
+                </div>
+                <button class="btn-red" onclick="deleteApp('${item.appId}')">Delete</button>
+            </div>`).join('');
     }
 
     async function deleteApp(id) {
-        if(!confirm("Are you sure you want to delete this app?")) return;
-        try {
-            await fetch(`${API_URL}/delete-app`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({id: id})
-            });
-            loadAdminList();
-        } catch (err) {
-            alert("Delete failed.");
-        }
+        if(!confirm("Delete?")) return;
+        await fetch(`${API_URL}/delete-app`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({id: id})
+        });
+        loadAdminList();
     }
 </script>
 </body>
