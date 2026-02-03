@@ -5,11 +5,12 @@
     <title>Kurde Store - Admin Panel</title>
     <style>
         body { font-family: -apple-system, sans-serif; background: #1c1c1e; color: white; padding: 20px; }
-        .container { max-width: 600px; margin: auto; background: #2c2c2e; padding: 30px; border-radius: 20px; }
+        .container { max-width: 600px; margin: auto; background: #2c2c2e; padding: 30px; border-radius: 20px; border: 1px solid #3a3a3c; }
         h1 { font-size: 24px; margin-bottom: 20px; color: #0a84ff; }
         label { display: block; margin-top: 15px; color: #8e8e93; font-size: 14px; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 10px; border: 1px solid #3a3a3c; background: #1c1c1e; color: white; box-sizing: border-box; }
         .btn-save { background: #30d158; color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold; margin-top: 25px; cursor: pointer; }
+        .btn-save:hover { background: #28b84b; }
         .category-group { display: flex; gap: 10px; }
     </style>
 </head>
@@ -35,22 +36,24 @@
             </div>
 
             <label>App Icon URL</label>
-            <input type="text" id="icon" placeholder="https://kurde.store/assets/icons/app.png">
+            <input type="text" id="icon" placeholder="https://kurde.store/assets/icon.png">
 
-            <label>Signed IPA URL (Direct Link)</label>
-            <input type="text" id="ipa" placeholder="https://kurde.store/assets/ScreenMirror_Signed.ipa">
+            <label>Plist URL (for itms-services)</label>
+            <input type="text" id="ipa" placeholder="https://kurde.store/plist/app.plist" required>
 
             <label>App Size (MB)</label>
             <input type="number" id="size" placeholder="107">
 
             <label>Description</label>
-            <textarea id="desc" rows="4" placeholder="What's new in this version?"></textarea>
+            <textarea id="desc" rows="4" placeholder="What's new?"></textarea>
 
             <button type="submit" class="btn-save">PUBLISH TO STORE</button>
         </form>
     </div>
 
     <script>
+        const API_URL = "https://wgcdclia51.execute-api.eu-west-2.amazonaws.com";
+
         document.getElementById('appForm').onsubmit = async (e) => {
             e.preventDefault();
             const data = {
@@ -60,18 +63,26 @@
                 icon: document.getElementById('icon').value,
                 ipa: document.getElementById('ipa').value,
                 size: document.getElementById('size').value,
-                desc: document.getElementById('desc').value,
-                downloads: 0 // Default start
+                desc: document.getElementById('desc').value
             };
 
-            // This sends the data to your AWS API
-            const response = await fetch('https://api.kurde.store/add-app', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
+            try {
+                const response = await fetch(`${API_URL}/add-app`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
 
-            if(response.ok) alert("Successfully added to Kurde Store!");
+                if(response.ok) {
+                    alert("Successfully added to Kurde Store!");
+                    document.getElementById('appForm').reset();
+                } else {
+                    alert("Error publishing. Check console.");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Connection failed.");
+            }
         };
     </script>
 </body>
