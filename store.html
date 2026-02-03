@@ -6,7 +6,6 @@
     <title>Kurde Store - Member Area</title>
     <style>
         :root { --ios-blue: #007aff; --ios-gray: #8e8e93; --ios-bg: #f2f2f7; }
-        /* Hidden by default for security */
         body { font-family: -apple-system, sans-serif; background-color: var(--ios-bg); margin: 0; padding-bottom: 50px; display: none; }
         
         .header { background: white; padding: 40px 20px 20px; border-bottom: 1px solid #d1d1d6; }
@@ -63,35 +62,24 @@
     <div id="device-info"></div>
 
     <script>
-        // 1. CONSTANTS
-        const API_URL = "https://wgcdclia51.execute-api.eu-west-2.amazonaws.com/KurdeStore_Manager";
+        // Use your base AWS URL (without the stage name if using default HTTP API)
+        const API_URL = "https://wgcdclia51.execute-api.eu-west-2.amazonaws.com";
         const urlParams = new URLSearchParams(window.location.search);
         const udid = urlParams.get('udid');
         const isAdmin = urlParams.get('admin') === 'true';
 
-        // 2. IMMEDIATE ADMIN BYPASS
-        // We run this BEFORE anything else to prevent redirects
         if (isAdmin) {
             document.body.style.display = "block";
             document.getElementById('date-today').innerText = "ADMIN ACCESS";
-            console.log("Admin Bypass Active");
         }
 
         async function initStore() {
-            if (isAdmin) {
-                await loadApps();
-                return;
-            }
-
-            if (!udid) {
-                window.location.replace("index.html");
-                return;
-            }
+            if (isAdmin) { await loadApps(); return; }
+            if (!udid) { window.location.replace("index.html"); return; }
 
             try {
-                const authRes = await fetch(`${API_URL}/get-user?udid=${udid}`);
-                if (!authRes.ok) throw new Error("Auth Server Error");
-                
+                // Adjusting the auth call to match your KurdeStore_Manager path
+                const authRes = await fetch(`${API_URL}/KurdeStore_Manager/get-user?udid=${udid}`);
                 const userData = await authRes.json();
                 
                 if (userData && (userData.status === 'paid' || userData.isPaid === true)) {
@@ -103,14 +91,13 @@
                     window.location.replace("index.html");
                 }
             } catch (err) {
-                console.error("Auth failed:", err);
                 window.location.replace("index.html");
             }
         }
 
         async function loadApps() {
             try {
-                const response = await fetch(`${API_URL}/get-apps`);
+                const response = await fetch(`${API_URL}/KurdeStore_Manager/get-apps`);
                 const items = await response.json();
 
                 const appsList = document.getElementById('apps-list');
@@ -121,6 +108,10 @@
                 if (!Array.isArray(items)) return;
 
                 items.forEach(item => {
+                    // DYNAMIC PLIST LOGIC: Point to your /plist route
+                    const dynamicPlistUrl = `${API_URL}/plist?appId=${item.appId}`;
+                    const installLink = `itms-services://?action=download-manifest&url=${encodeURIComponent(dynamicPlistUrl)}`;
+
                     const html = `
                         <div class="app-item">
                             <img src="${item.icon}" class="app-icon" onerror="this.src='https://via.placeholder.com/60'">
@@ -128,7 +119,7 @@
                                 <div class="app-name">${item.name}</div>
                                 <div class="app-sub">v${item.version || '1.0'}</div>
                             </div>
-                            <button onclick="installApp('${item.appId}', '${item.ipa}')" class="get-btn">GET</button>
+                            <button onclick="window.location.href='${installLink}'" class="get-btn">GET</button>
                         </div>
                     `;
                     if (item.category === "Games") gamesList.innerHTML += html;
@@ -139,37 +130,15 @@
             }
         }
 
-        function installApp(id, ipaUrl) {
-            // itms-services redirect
-            window.location.href = `itms-services://?action=download-manifest&url=${ipaUrl}`;
-        }
-
         // Search Logic
         document.getElementById('searchInput').addEventListener('input', function() {
             let filter = this.value.toLowerCase();
-            let items = document.querySelectorAll('.app-item');
-            let anyVisible = false;
-
-            items.forEach(item => {
+            document.querySelectorAll('.app-item').forEach(item => {
                 let text = item.querySelector('.app-name').innerText.toLowerCase();
-                if (text.includes(filter)) {
-                    item.style.display = "flex";
-                    anyVisible = true;
-                } else {
-                    item.style.display = "none";
-                }
+                item.style.display = text.includes(filter) ? "flex" : "none";
             });
-
-            document.querySelectorAll('.section-title').forEach(title => {
-                let nextList = title.nextElementSibling;
-                let visibleInList = Array.from(nextList.querySelectorAll('.app-item')).some(i => i.style.display !== "none");
-                title.style.display = (visibleInList || filter === "") ? "block" : "none";
-            });
-
-            document.getElementById('no-results').style.display = anyVisible ? "none" : "block";
         });
 
-        // Run on load
         window.onload = initStore;
     </script>
 </body>
