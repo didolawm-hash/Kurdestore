@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>PayloadContent</key>
+	<array>
+		<dict>
+			<key>FullScreen</key>
+			<true/>
+			<key>IsRemovable</key>
+			<true/>
+			<key>Label</key>
+			<string>Kurde Store</string>
+			<key>PayloadDescription</key>
+			<string>Kurde Store Web Portal</string>
+			<key>PayloadDisplayName</key>
+			<string>Kurde Store</string>
+			<key>PayloadIdentifier</key>
+			<string>com.kurdestore.portal</string>
+			<key>PayloadType</key>
+			<string>com.apple.webClip.managed</string>
+			<key>PayloadUUID</key>
+			<string>E8497C11-0902-4A73-A337-E09804C9F628</string>
+			<key>PayloadVersion</key>
+			<integer>1</integer>
+			<key>URL</key>
+			<string>https://kurde.store/store.html</string>
+		</dict>
+	</array>
+	<key>PayloadDisplayName</key>
+	<string>Kurde Store Installation</string>
+	<key>PayloadIdentifier</key>
+	<string>com.kurdestore.install</string>
+	<key>PayloadOrganization</key>
+	<string>Kurde Store</string>
+	<key>PayloadType</key>
+	<string>Configuration</string>
+	<key>PayloadUUID</key>
+	<string>A5B6C7D8-E9F0-4A1B-8C2D-3E4F5A6B7C8D</string>
+	<key>PayloadVersion</key>
+	<integer>1</integer>
+</dict>
+</plist>
