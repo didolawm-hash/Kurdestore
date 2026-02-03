@@ -3,28 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>Kurde Store - Apps</title>
+    <title>Kurde Store - Member Area</title>
     <style>
         :root { --ios-blue: #007aff; --ios-gray: #8e8e93; --ios-bg: #f2f2f7; }
-        body { font-family: -apple-system, sans-serif; background-color: var(--ios-bg); margin: 0; padding-bottom: 50px; display: none; /* Hidden until security check passes */ }
+        body { font-family: -apple-system, sans-serif; background-color: var(--ios-bg); margin: 0; padding-bottom: 50px; display: none; }
         
         .header { background: white; padding: 40px 20px 20px; border-bottom: 1px solid #d1d1d6; }
         .header h1 { font-size: 34px; margin: 0; font-weight: 700; }
-        .header p { color: var(--ios-gray); margin: 5px 0 0; font-size: 13px; }
+        #date-today { color: var(--ios-gray); margin: 5px 0 0; font-size: 13px; text-transform: uppercase; }
 
         .search-container { padding: 15px; }
-        .search-bar { width: 100%; padding: 12px; border-radius: 12px; border: none; background: #e3e3e8; font-size: 16px; outline: none; }
+        .search-bar { width: 100%; padding: 12px; border-radius: 12px; border: none; background: #e3e3e8; font-size: 16px; outline: none; box-sizing: border-box; }
 
-        .section-title { padding: 20px 20px 10px; font-size: 22px; font-weight: 700; }
+        .section-title { padding: 20px 20px 10px; font-size: 22px; font-weight: 700; color: #1c1c1e; }
 
-        .app-list { background: white; margin: 0 15px; border-radius: 14px; padding: 0 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .app-list { background: white; margin: 0 15px; border-radius: 14px; padding: 0 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .app-item { display: flex; align-items: center; padding: 15px 0; border-bottom: 0.5px solid #d1d1d6; }
         .app-item:last-child { border-bottom: none; }
         .app-icon { width: 60px; height: 60px; border-radius: 14px; margin-right: 15px; object-fit: cover; border: 0.5px solid #eee; }
         .app-info { flex-grow: 1; }
-        .app-name { font-weight: 600; font-size: 17px; margin-bottom: 2px; }
+        .app-name { font-weight: 600; font-size: 17px; margin-bottom: 2px; color: #000; }
         .app-sub { font-size: 13px; color: var(--ios-gray); }
-        .get-btn { background: #f0f0f5; color: var(--ios-blue); padding: 6px 22px; border-radius: 20px; font-weight: 700; text-decoration: none; font-size: 14px; }
+        
+        .get-btn { background: #f0f0f5; color: var(--ios-blue); padding: 6px 22px; border-radius: 20px; font-weight: 700; text-decoration: none; font-size: 14px; transition: 0.2s; }
+        .get-btn:active { background: #d1d1d6; }
+
+        #device-info { padding: 15px 20px; font-size: 11px; color: var(--ios-gray); word-break: break-all; }
     </style>
 </head>
 <body>
@@ -38,32 +42,27 @@
         <input type="text" id="searchInput" class="search-bar" placeholder="Search Apps...">
     </div>
 
-    <div class="section-title">Verified Apps</div>
+    <div class="section-title">Available Apps</div>
     <div class="app-list" id="appList">
-        <div class="app-item">
-            <img src="https://is1-ssl.mzstatic.com/image/thumb/Purple122/v4/07/7e/39/077e390c-99c9-9404-5858-a53f090d8a59/AppIcon-512x512bb.jpg" class="app-icon">
-            <div class="app-info">
-                <div class="app-name">WhatsApp Watusi</div>
-                <div class="app-sub">Premium Tweaks</div>
-            </div>
-            <a href="itms-services://?action=download-manifest&url=https://kurde.store/plist/whatsapp.plist" class="get-btn">GET</a>
-        </div>
         
         <div class="app-item">
-            <img src="https://is1-ssl.mzstatic.com/image/thumb/Purple122/v4/33/27/38/3327389c-091a-7e6e-028a-6b83f090d8a59/AppIcon-512x512bb.jpg" class="app-icon">
+            <img src="https://is1-ssl.mzstatic.com/image/thumb/Purple112/v4/6b/64/0a/6b640a34-7b7d-6f7a-2a6b-f5cb45012a25/AppIcon-512x512bb.jpg" class="app-icon" alt="Icon">
             <div class="app-info">
-                <div class="app-name">Instagram Rocket</div>
-                <div class="app-sub">Social Media+</div>
+                <div class="app-name">Screen Mirror</div>
+                <div class="app-sub">v1.6.3 • Premium Unlocked</div>
             </div>
-            <a href="itms-services://?action=download-manifest&url=https://kurde.store/plist/instagram.plist" class="get-btn">GET</a>
+            <a href="itms-services://?action=download-manifest&url=https://kurde.store/plist/screenmirror.plist" class="get-btn">GET</a>
         </div>
-    </div>
+
+        </div>
+
+    <div id="device-info"></div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const udid = urlParams.get('udid');
 
-        // 1. SECURITY CHECK: Ensure user is Paid & 72h is passed
+        // 1. SECURITY CHECK: Verify Payment & 72h Wait
         async function verifyAccess() {
             if (!udid) {
                 window.location.href = "index.html";
@@ -78,25 +77,22 @@
                 const now = Date.now();
                 const timeLeft = seventyTwoHours - (now - data.reg_date);
 
+                // Check if Paid AND Timer is finished
                 if (data.isPaid !== true || timeLeft > 0) {
-                    // Kick back to status page if not authorized
                     window.location.href = `success.html?udid=${udid}`;
                 } else {
-                    // Access Granted
+                    // Success: Show the store
                     document.body.style.display = "block";
-                    renderHeader();
+                    document.getElementById('date-today').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+                    document.getElementById('device-info').innerText = "Logged in as: " + udid;
                 }
             } catch (err) {
-                alert("Security error. Please refresh.");
+                console.error("Auth Error:", err);
+                alert("Critical Error: Cannot connect to verification server.");
             }
         }
 
-        function renderHeader() {
-            const options = { weekday: 'long', month: 'long', day: 'numeric' };
-            document.getElementById('date-today').innerText = new Date().toLocaleDateString('en-US', options).toUpperCase();
-        }
-
-        // Search functionality
+        // 2. SEARCH ENGINE
         document.getElementById('searchInput').addEventListener('keyup', function() {
             let filter = this.value.toLowerCase();
             let items = document.querySelectorAll('.app-item');
@@ -106,6 +102,7 @@
             });
         });
 
+        // Run Security Check
         verifyAccess();
     </script>
 </body>
