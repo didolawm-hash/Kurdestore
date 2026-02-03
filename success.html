@@ -1,31 +1,29 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Registration Success</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body { font-family: -apple-system, sans-serif; text-align: center; padding: 50px; background: #f2f2f7; }
-        .card { background: white; padding: 30px; border-radius: 20px; shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .udid { font-family: monospace; background: #eee; padding: 10px; word-break: break-all; border-radius: 5px; }
-        .check { color: #34c759; font-size: 50px; }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <div class="check">✓</div>
-        <h1>Device Registered</h1>
-        <p>Your UDID has been captured:</p>
-        <p class="udid" id="udidDisplay">Loading...</p>
-        <p>You can now return to the store.</p>
-    </div>
+const urlParams = new URLSearchParams(window.location.search);
+const udid = urlParams.get('udid');
 
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const udid = urlParams.get('udid');
-        if (udid) {
-            document.getElementById('udidDisplay').innerText = udid;
+async function checkStatus() {
+    const response = await fetch(`https://api.kurde.store?udid=${udid}`);
+    const data = await response.json();
+
+    const statusDiv = document.getElementById('statusBox');
+    const now = Date.now();
+    const waitTime = 72 * 60 * 60 * 1000; // 72 hours in milliseconds
+
+    if (data.status === "pending") {
+        const timeLeft = waitTime - (now - data.reg_date);
+        if (timeLeft > 0) {
+            const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+            statusDiv.innerHTML = `
+                <div style="color: orange;">Status: Processing</div>
+                <p>Apple is registering your device. Please wait <b>${hours} hours</b> more.</p>
+                <p>The install button will appear once active.</p>
+            `;
+        } else {
+            statusDiv.innerHTML = `
+                <div style="color: green;">Status: Active</div>
+                <a href="install-app.mobileconfig" class="btn">Install Kurde Store App</a>
+            `;
         }
-    </script>
-</body>
-</html>
+    }
+}
+checkStatus();
