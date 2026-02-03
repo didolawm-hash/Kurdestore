@@ -2,29 +2,29 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>PayloadContent</key>
-    <dict>
-        <key>URL</key>
-        <string>https://api.kurde.store</string>
-        <key>DeviceAttributes</key>
-        <array>
-            <string>UDID</string>
-            <string>PRODUCT</string>
-            <string>VERSION</string>
-            <string>SERIAL</string>
-        </array>
-    </dict>
-    <key>PayloadOrganization</key>
-    <string>My Store</string>
-    <key>PayloadDisplayName</key>
-    <string>Device Registration</string>
-    <key>PayloadVersion</key>
-    <integer>1</integer>
-    <key>PayloadType</key>
-    <string>Configuration</string>
-    <key>PayloadIdentifier</key>
-    <string>com.mystore.profile-service</string>
-    <key>PayloadUUID</key>
-    <string>58204E94-6881-4C53-A000-8A18E6E920A2</string>
+	<key>PayloadContent</key>
+	<dict>
+		<key>URL</key>
+		<string>https://api.kurde.store</string>
+		<key>DeviceAttributes</key>
+		<array>
+			<string>UDID</string>
+			<string>PRODUCT</string>
+			<string>VERSION</string>
+			<string>SERIAL</string>
+		</array>
+	</dict>
+	<key>PayloadOrganization</key>
+	<string>iKurd</string>
+	<key>PayloadDisplayName</key>
+	<string>iKurd Profile</string>
+	<key>PayloadVersion</key>
+	<integer>1</integer>
+	<key>PayloadType</key>
+	<string>Profile Service</string>
+	<key>PayloadIdentifier</key>
+	<string>com.ikurd.config</string>
+	<key>PayloadUUID</key>
+	<string>9CF80C0D-9C25-4B93-9733-6627582B649D</string>
 </dict>
 </plist>
