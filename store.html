@@ -6,21 +6,15 @@
     <title>Kurde Store - Member Area</title>
     <style>
         :root { --ios-blue: #007aff; --ios-gray: #8e8e93; --ios-bg: #f2f2f7; }
+        /* Changed display to block by default for admin testing, 
+           the script will hide it for unauthorized users */
         body { font-family: -apple-system, sans-serif; background-color: var(--ios-bg); margin: 0; padding-bottom: 50px; display: none; }
         
-        /* Sticky Header & Search */
         .header { background: white; padding: 40px 20px 20px; border-bottom: 1px solid #d1d1d6; }
         .header h1 { font-size: 34px; margin: 0; font-weight: 700; }
         #date-today { color: var(--ios-gray); margin: 5px 0 0; font-size: 13px; text-transform: uppercase; }
 
-        .search-container { 
-            padding: 10px 15px; 
-            position: sticky; 
-            top: 0; 
-            background: var(--ios-bg); 
-            z-index: 100; 
-            border-bottom: 0.5px solid #d1d1d6;
-        }
+        .search-container { padding: 10px 15px; position: sticky; top: 0; background: var(--ios-bg); z-index: 100; border-bottom: 0.5px solid #d1d1d6; }
         .search-bar { width: 100%; padding: 12px; border-radius: 12px; border: none; background: #e3e3e8; font-size: 16px; outline: none; box-sizing: border-box; }
 
         .featured-container { padding: 20px 15px; overflow-x: auto; display: flex; gap: 15px; scroll-snap-type: x mandatory; }
@@ -37,8 +31,6 @@
         .get-btn { background: #f0f0f5; color: var(--ios-blue); padding: 6px 22px; border-radius: 20px; font-weight: 700; border: none; font-size: 14px; cursor: pointer; }
         
         #device-info { padding: 20px; font-size: 11px; color: var(--ios-gray); text-align: center; }
-        
-        /* No Results Message */
         #no-results { display: none; text-align: center; padding: 20px; color: var(--ios-gray); }
     </style>
 </head>
@@ -72,26 +64,46 @@
     <div id="device-info"></div>
 
     <script>
-        const API_URL = "https://wgcdclia51.execute-api.eu-west-2.amazonaws.com";
+        // Use your full AWS path
+        const API_URL = "https://wgcdclia51.execute-api.eu-west-2.amazonaws.com/KurdeStore_Manager";
         const urlParams = new URLSearchParams(window.location.search);
         const udid = urlParams.get('udid');
+        const isAdmin = urlParams.get('admin') === 'true'; // Admin bypass check
 
         async function initStore() {
+            // 1. ADMIN BYPASS
+            if (isAdmin) {
+                document.body.style.display = "block";
+                document.getElementById('date-today').innerText = "Admin Access Mode";
+                loadApps();
+                return;
+            }
+
+            // 2. REGULAR USER CHECK
             if (!udid) {
                 window.location.href = "index.html";
                 return;
             }
 
             try {
-                const authRes = await fetch(`https://api.kurde.store?udid=${udid}`);
-                // Assuming status 200 means access granted
-                document.body.style.display = "block";
-                document.getElementById('date-today').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-                document.getElementById('device-info').innerText = "UDID: " + udid;
-
-                loadApps();
+                // Changed from api.kurde.store to your actual AWS endpoint
+                const authRes = await fetch(`${API_URL}/get-user?udid=${udid}`);
+                const userData = await authRes.json();
+                
+                // If user is paid and 72h passed (we already bypassed time in DynamoDB)
+                if (userData && (userData.status === 'paid' || userData.isPaid === true)) {
+                    document.body.style.display = "block";
+                    document.getElementById('date-today').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+                    document.getElementById('device-info').innerText = "UDID: " + udid;
+                    loadApps();
+                } else {
+                    alert("Unauthorized or Processing. Please wait.");
+                    window.location.href = "index.html";
+                }
             } catch (err) {
                 console.error("Auth failed:", err);
+                // If API fails, we redirect to be safe
+                window.location.href = "index.html";
             }
         }
 
@@ -111,7 +123,7 @@
                             <img src="${item.icon}" class="app-icon" onerror="this.src='https://via.placeholder.com/60'">
                             <div class="app-info">
                                 <div class="app-name">${item.name}</div>
-                                <div class="app-sub">v${item.version} • ${item.size}MB • ${item.downloads || 0} Users</div>
+                                <div class="app-sub">v${item.version || '1.0'} • ${item.size || '??'}MB</div>
                             </div>
                             <button onclick="installApp('${item.appId}', '${item.ipa}')" class="get-btn">GET</button>
                         </div>
@@ -125,17 +137,15 @@
         }
 
         async function installApp(id, ipaUrl) {
-            // Count download
             fetch(`${API_URL}/download`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: id })
             });
-            // Redirect to iOS install
             window.location.href = `itms-services://?action=download-manifest&url=${ipaUrl}`;
         }
 
-        // --- IMPROVED SEARCH BAR LOGIC ---
+        // Search Logic
         document.getElementById('searchInput').addEventListener('input', function() {
             let filter = this.value.toLowerCase();
             let items = document.querySelectorAll('.app-item');
@@ -151,20 +161,13 @@
                 }
             });
 
-            // Handle Section Titles and "No Results" message
-            const appSection = document.getElementById('apps-list');
-            const gameSection = document.getElementById('games-list');
-            const noResults = document.getElementById('no-results');
-
-            // Hide section titles if no apps in that category match
             document.querySelectorAll('.section-title').forEach(title => {
-                // If the list immediately following this title has no visible items, hide the title
                 let nextList = title.nextElementSibling;
-                let visibleInList = nextList.querySelectorAll('.app-item[style="display: flex;"]').length > 0;
+                let visibleInList = Array.from(nextList.querySelectorAll('.app-item')).some(i => i.style.display !== "none");
                 title.style.display = (visibleInList || filter === "") ? "block" : "none";
             });
 
-            noResults.style.display = anyVisible ? "none" : "block";
+            document.getElementById('no-results').style.display = anyVisible ? "none" : "block";
         });
 
         initStore();
