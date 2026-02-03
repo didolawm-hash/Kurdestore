@@ -11,12 +11,13 @@
         input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 10px; border: 1px solid #3a3a3c; background: #1c1c1e; color: white; box-sizing: border-box; }
         .btn-save { background: #30d158; color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold; margin-top: 25px; cursor: pointer; }
         
-        /* Delete Section Styles */
         .manage-section { margin-top: 40px; border-top: 1px solid #3a3a3c; padding-top: 20px; }
-        .admin-item { display: flex; align-items: center; background: #1c1c1e; padding: 10px; border-radius: 10px; margin-bottom: 10px; }
-        .admin-item img { width: 40px; height: 40px; border-radius: 8px; margin-right: 15px; }
+        #adminSearch { margin-bottom: 20px; border: 1px solid #0a84ff; }
+        
+        .admin-item { display: flex; align-items: center; background: #1c1c1e; padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 0.5px solid #3a3a3c; }
+        .admin-item img { width: 45px; height: 45px; border-radius: 10px; margin-right: 15px; }
         .admin-item-info { flex-grow: 1; }
-        .btn-delete { background: #ff3b30; color: white; border: none; padding: 5px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; }
+        .btn-delete { background: #ff3b30; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -41,6 +42,7 @@
 
         <div class="manage-section">
             <h2>Manage Live Apps</h2>
+            <input type="text" id="adminSearch" placeholder="Search live apps to delete...">
             <div id="admin-list">Loading apps...</div>
         </div>
     </div>
@@ -48,7 +50,7 @@
     <script>
         const API_URL = "https://wgcdclia51.execute-api.eu-west-2.amazonaws.com";
 
-        // 1. PUBLISH FUNCTION
+        // 1. ADD APP
         document.getElementById('appForm').onsubmit = async (e) => {
             e.preventDefault();
             const data = {
@@ -65,11 +67,12 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
-            alert("Published!");
-            loadAdminList(); // Refresh list
+            alert("App Published Successfully!");
+            document.getElementById('appForm').reset();
+            loadAdminList();
         };
 
-        // 2. LOAD LIST FOR DELETION
+        // 2. LOAD LIST
         async function loadAdminList() {
             const listDiv = document.getElementById('admin-list');
             const res = await fetch(`${API_URL}/get-apps`);
@@ -78,26 +81,35 @@
             items.forEach(item => {
                 listDiv.innerHTML += `
                     <div class="admin-item">
-                        <img src="${item.icon}">
+                        <img src="${item.icon || 'https://kurde.store/assets/default-icon.png'}">
                         <div class="admin-item-info">
-                            <div>${item.name}</div>
-                            <small style="color:gray">${item.category}</small>
+                            <div style="font-weight:bold">${item.name}</div>
+                            <small style="color:gray">${item.category} • v${item.version}</small>
                         </div>
                         <button class="btn-delete" onclick="deleteApp('${item.appId}')">Delete</button>
                     </div>`;
             });
         }
 
-        // 3. DELETE FUNCTION
+        // 3. DELETE APP
         async function deleteApp(id) {
-            if(!confirm("Are you sure you want to delete this app?")) return;
+            if(!confirm("Are you sure? This will remove the app from the store.")) return;
             await fetch(`${API_URL}/delete-app`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: id })
             });
-            loadAdminList(); // Refresh list
+            loadAdminList();
         }
+
+        // 4. ADMIN SEARCH LOGIC
+        document.getElementById('adminSearch').addEventListener('keyup', function() {
+            let filter = this.value.toLowerCase();
+            document.querySelectorAll('.admin-item').forEach(item => {
+                let name = item.querySelector('.admin-item-info div').innerText.toLowerCase();
+                item.style.display = name.includes(filter) ? "flex" : "none";
+            });
+        });
 
         loadAdminList();
     </script>
