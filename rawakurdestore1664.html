@@ -2,79 +2,81 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Kurde Store - Admin Panel & Plist Gen</title>
+    <title>Kurde Store - Master Admin</title>
     <style>
         body { font-family: -apple-system, sans-serif; background: #1c1c1e; color: white; padding: 20px; }
-        .container { max-width: 800px; margin: auto; display: flex; gap: 20px; }
-        .box { background: #2c2c2e; padding: 25px; border-radius: 20px; border: 1px solid #3a3a3c; flex: 1; }
-        h1, h2 { color: #0a84ff; margin-top: 0; }
-        label { display: block; margin-top: 10px; color: #8e8e93; font-size: 12px; }
-        input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; border-radius: 8px; border: 1px solid #3a3a3c; background: #1c1c1e; color: white; box-sizing: border-box; }
-        .btn { padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; width: 100%; margin-top: 15px; }
+        .container { max-width: 900px; margin: auto; display: flex; gap: 20px; flex-wrap: wrap; }
+        .box { background: #2c2c2e; padding: 25px; border-radius: 20px; border: 1px solid #3a3a3c; flex: 1; min-width: 350px; }
+        h1, h2 { color: #0a84ff; margin-top: 0; font-size: 22px; }
+        label { display: block; margin-top: 12px; color: #8e8e93; font-size: 12px; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 10px; border: 1px solid #3a3a3c; background: #1c1c1e; color: white; box-sizing: border-box; }
+        .btn { padding: 14px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; width: 100%; margin-top: 15px; transition: 0.2s; }
+        .btn:active { transform: scale(0.98); }
         .btn-blue { background: #0a84ff; color: white; }
         .btn-green { background: #30d158; color: white; }
-        .btn-red { background: #ff3b30; color: white; padding: 5px; font-size: 11px; width: auto; }
-        pre { background: #1c1c1e; padding: 10px; border-radius: 10px; font-size: 11px; overflow-x: auto; color: #30d158; border: 1px solid #3a3a3c; max-height: 200px; }
-        .admin-item { display: flex; align-items: center; background: #1c1c1e; padding: 10px; border-radius: 10px; margin-bottom: 8px; border: 0.5px solid #3a3a3c; }
-        .admin-item img { width: 40px; height: 40px; border-radius: 8px; margin-right: 12px; }
+        .btn-red { background: #ff3b30; color: white; padding: 6px; font-size: 11px; width: auto; }
+        pre { background: #1c1c1e; padding: 15px; border-radius: 10px; font-size: 11px; color: #30d158; border: 1px solid #3a3a3c; max-height: 150px; overflow: auto; }
+        .admin-item { display: flex; align-items: center; background: #1c1c1e; padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 0.5px solid #3a3a3c; }
+        .admin-item img { width: 45px; height: 45px; border-radius: 10px; margin-right: 15px; }
+        .step-num { background: #0a84ff; color: white; border-radius: 50%; width: 20px; height: 20px; display: inline-block; text-align: center; font-size: 14px; margin-right: 8px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="box">
-        <h1>Add New App</h1>
+        <h1><span class="step-num">1</span>Create & Add App</h1>
         <form id="appForm">
             <label>App Name</label>
             <input type="text" id="name" placeholder="Minecraft" required>
             
-            <label>Direct IPA Link (AWS S3 URL)</label>
-            <input type="text" id="ipa_direct" placeholder="https://bucket.s3.amazonaws.com/game.ipa" required>
+            <label>IPA Direct Link (from AWS S3)</label>
+            <input type="text" id="ipa_direct" placeholder="https://s3.amazonaws.com/file.ipa">
             
-            <label>Bundle ID (e.g., com.kurde.game)</label>
-            <input type="text" id="bundle" placeholder="com.kurde.app">
+            <button type="button" class="btn btn-blue" onclick="generateAndDownload()">Generate & Download .plist</button>
+            
+            <hr style="border: 0.5px solid #3a3a3c; margin: 25px 0;">
 
-            <label>Final Plist URL (The link you will upload to GitHub/S3)</label>
-            <input type="text" id="plist_url" placeholder="Paste link here AFTER you upload the plist" required>
+            <label><span class="step-num">2</span>Final Plist URL (After Uploading)</label>
+            <input type="text" id="plist_url" placeholder="https://raw.githubusercontent.com/.../file.plist" required>
 
             <div style="display:flex; gap:10px;">
                 <div style="flex:1"><label>Category</label><select id="category"><option>Apps</option><option>Games</option></select></div>
                 <div style="flex:1"><label>Version</label><input type="text" id="version" placeholder="1.0"></div>
             </div>
             
-            <label>Icon URL</label><input type="text" id="icon">
-            <label>Size (MB)</label><input type="number" id="size">
+            <label>Icon URL</label><input type="text" id="icon" placeholder="https://...">
+            <label>Size (MB)</label><input type="number" id="size" placeholder="150">
 
-            <button type="button" class="btn btn-blue" onclick="generatePlist()">1. GENERATE PLIST CODE</button>
-            <button type="submit" class="btn btn-green">2. PUBLISH TO STORE</button>
+            <button type="submit" class="btn btn-green">Publish to Store</button>
         </form>
 
-        <div id="plistOutput" style="display:none; margin-top:20px;">
-            <h2>Your Plist Code</h2>
-            <p style="font-size: 11px; color: #8e8e93;">Copy this, save as <b>app.plist</b>, upload it, then paste the link above.</p>
+        <div id="plistPreview" style="display:none; margin-top:20px;">
+            <label>Last Generated Code:</label>
             <pre id="plistCode"></pre>
-            <button class="btn btn-blue" onclick="copyPlist()">Copy Code</button>
         </div>
     </div>
 
     <div class="box">
         <h2>Live Store Management</h2>
-        <input type="text" id="adminSearch" placeholder="Search apps...">
-        <div id="admin-list" style="margin-top:15px;"></div>
+        <input type="text" id="adminSearch" placeholder="Search live apps...">
+        <div id="admin-list" style="margin-top:20px;">Loading...</div>
     </div>
 </div>
 
 <script>
     const API_URL = "https://wgcdclia51.execute-api.eu-west-2.amazonaws.com";
 
-    // GENERATE PLIST CODE
-    function generatePlist() {
+    // 1. GENERATE CODE AND DOWNLOAD FILE
+    function generateAndDownload() {
         const name = document.getElementById('name').value;
         const ipa = document.getElementById('ipa_direct').value;
-        const bundle = document.getElementById('bundle').value || "com.kurde.store";
         const version = document.getElementById('version').value || "1.0";
 
-        if(!name || !ipa) return alert("Please fill App Name and Direct IPA Link first!");
+        if(!name || !ipa) {
+            alert("Please enter App Name and IPA Link first!");
+            return;
+        }
 
         const plist = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -95,7 +97,7 @@
             <key>metadata</key>
             <dict>
                 <key>bundle-identifier</key>
-                <string>${bundle}</string>
+                <string>com.kurde.${name.replace(/\s+/g, '').toLowerCase()}</string>
                 <key>bundle-version</key>
                 <string>${version}</string>
                 <key>kind</key>
@@ -109,16 +111,19 @@
 </plist>`;
 
         document.getElementById('plistCode').innerText = plist;
-        document.getElementById('plistOutput').style.display = "block";
+        document.getElementById('plistPreview').style.display = "block";
+
+        // Trigger Download
+        const blob = new Blob([plist], { type: 'application/xml' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${name.replace(/\s+/g, '_').toLowerCase()}.plist`;
+        a.click();
+        URL.revokeObjectURL(url);
     }
 
-    function copyPlist() {
-        const code = document.getElementById('plistCode').innerText;
-        navigator.clipboard.writeText(code);
-        alert("Plist code copied to clipboard!");
-    }
-
-    // PUBLISH FUNCTION
+    // 2. PUBLISH TO DATABASE
     document.getElementById('appForm').onsubmit = async (e) => {
         e.preventDefault();
         const data = {
@@ -126,32 +131,55 @@
             category: document.getElementById('category').value,
             version: document.getElementById('version').value,
             icon: document.getElementById('icon').value,
-            ipa: document.getElementById('plist_url').value, // This is the Plist link
+            ipa: document.getElementById('plist_url').value,
             size: document.getElementById('size').value
         };
-        await fetch(`${API_URL}/add-app`, { method: 'POST', body: JSON.stringify(data) });
-        alert("App Published!");
+        
+        await fetch(`${API_URL}/add-app`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        alert("Success: App is now live!");
         loadAdminList();
     };
 
+    // 3. LOAD & SEARCH LOGIC
     async function loadAdminList() {
         const res = await fetch(`${API_URL}/get-apps`);
         const items = await res.json();
         const listDiv = document.getElementById('admin-list');
-        listDiv.innerHTML = items.map(item => `
-            <div class="admin-item">
-                <img src="${item.icon}">
-                <div style="flex-grow:1"><b>${item.name}</b></div>
-                <button class="btn-red" onclick="deleteApp('${item.appId}')">Delete</button>
-            </div>
-        `).join('');
+        listDiv.innerHTML = '';
+        items.forEach(item => {
+            listDiv.innerHTML += `
+                <div class="admin-item">
+                    <img src="${item.icon}">
+                    <div style="flex-grow:1">
+                        <div><b>${item.name}</b></div>
+                        <small style="color:gray">${item.category}</small>
+                    </div>
+                    <button class="btn-red" onclick="deleteApp('${item.appId}')">Delete</button>
+                </div>`;
+        });
     }
 
     async function deleteApp(id) {
-        if(!confirm("Delete?")) return;
-        await fetch(`${API_URL}/delete-app`, { method: 'POST', body: JSON.stringify({id: id}) });
+        if(!confirm("Are you sure?")) return;
+        await fetch(`${API_URL}/delete-app`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({id: id})
+        });
         loadAdminList();
     }
+
+    document.getElementById('adminSearch').addEventListener('input', function() {
+        let f = this.value.toLowerCase();
+        document.querySelectorAll('.admin-item').forEach(i => {
+            i.style.display = i.innerText.toLowerCase().includes(f) ? "flex" : "none";
+        });
+    });
 
     loadAdminList();
 </script>
