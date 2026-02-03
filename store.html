@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Kurde Store - Apps & Games</title>
+    <style>
+        :root { --blue: #007aff; --bg: #f2f2f7; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 80px; }
+        header { padding: 20px; background: white; border-bottom: 1px solid #ddd; position: sticky; top: 0; z-index: 100; }
+        .search-bar { background: #e3e3e6; padding: 10px; border-radius: 10px; display: flex; align-items: center; }
+        input { border: none; background: transparent; width: 100%; padding-left: 10px; font-size: 16px; outline: none; }
+        .tab-bar { position: fixed; bottom: 0; width: 100%; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #ddd; }
+        .tab { text-align: center; color: #8e8e93; font-size: 12px; cursor: pointer; text-decoration: none; }
+        .tab.active { color: var(--blue); }
+        .page { display: none; padding: 20px; }
+        .page.active { display: block; }
+        .app-card { background: white; padding: 15px; border-radius: 15px; display: flex; align-items: center; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .app-icon { width: 60px; height: 60px; border-radius: 14px; margin-right: 15px; background: #ddd; object-fit: cover; }
+        .app-info { flex-grow: 1; }
+        .app-name { font-weight: bold; font-size: 17px; margin-bottom: 4px; }
+        .btn-install { background: #eef6ff; color: var(--blue); padding: 6px 18px; border-radius: 18px; font-weight: bold; text-decoration: none; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1 style="margin: 0 0 15px 0; font-size: 28px;">Kurde Store</h1>
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search hacked games..." onkeyup="search()">
+    </div>
+</header>
+
+<div id="home" class="page active"><h3>Featured</h3><div id="featuredList"></div></div>
+<div id="apps" class="page"><h3>Applications</h3><div id="appsList"></div></div>
+<div id="games" class="page"><h3>Games</h3><div id="gamesList"></div></div>
+
+<div class="tab-bar">
+    <div class="tab active" onclick="showPage('home', this)">🏠<br>Home</div>
+    <div class="tab" onclick="showPage('apps', this)">📱<br>Apps</div>
+    <div class="tab" onclick="showPage('games', this)">🎮<br>Games</div>
+</div>
+
+<script>
+    const storeData = [
+        { name: "Snapchat Plus", type: "apps", icon: "assets/snap.png", plist: "snap.plist", featured: true },
+        { name: "PUBG Mobile", type: "games", icon: "assets/pubg.png", plist: "pubg.plist", featured: true },
+        { name: "Instagram Rocket", type: "apps", icon: "assets/insta.png", plist: "insta.plist", featured: false }
+    ];
+
+    function render() {
+        ['featuredList', 'appsList', 'gamesList'].forEach(id => document.getElementById(id).innerHTML = "");
+        storeData.forEach(app => {
+            const html = `<div class="app-card">
+                <img src="${app.icon}" class="app-icon">
+                <div class="app-info"><div class="app-name">${app.name}</div></div>
+                <a href="itms-services://?action=download-manifest&url=https://kurde.store/plists/${app.plist}" class="btn-install">GET</a>
+            </div>`;
+            if(app.featured) document.getElementById('featuredList').innerHTML += html;
+            if(app.type === 'apps') document.getElementById('appsList').innerHTML += html;
+            if(app.type === 'games') document.getElementById('gamesList').innerHTML += html;
+        });
+    }
+
+    function showPage(id, el) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        el.classList.add('active');
+    }
+
+    function search() {
+        let q = document.getElementById('searchInput').value.toLowerCase();
+        let cards = document.getElementsByClassName('app-card');
+        for (let c of cards) {
+            c.style.display = c.querySelector('.app-name').innerText.toLowerCase().includes(q) ? "flex" : "none";
+        }
+    }
+    render();
+</script>
+</body>
+</html>
