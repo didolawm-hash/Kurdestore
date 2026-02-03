@@ -19,31 +19,47 @@
         <h2 id="title">Checking Registration...</h2>
         <div id="statusBox">
             <div class="loader"></div>
-            <p>Communicating with Apple Servers...</p>
+            <p>Communicating with AWS Servers...</p>
         </div>
         <div id="udid"></div>
     </div>
 
     <script>
+        // --- DEBUGGER: This will alert you on your iPhone if the script fails ---
+        window.onerror = function(msg, url, line) {
+            alert("Error: " + msg + "\nLine: " + line);
+            return false;
+        };
+
         const urlParams = new URLSearchParams(window.location.search);
         const udid = urlParams.get('udid');
 
         async function getStatus() {
+            const statusBox = document.getElementById('statusBox');
+            const title = document.getElementById('title');
+            const udidDiv = document.getElementById('udid');
+
             if (!udid) {
-                document.getElementById('statusBox').innerHTML = "No UDID found. Please start from the home page.";
+                statusBox.innerHTML = "<b>No UDID found.</b><br>Please try the registration again.";
                 return;
             }
-            document.getElementById('udid').innerText = "Device UDID: " + udid;
+
+            udidDiv.innerText = "Device UDID: " + udid;
 
             try {
-                // Replace with your actual API Gateway URL
-                const response = await fetch(`https://api.kurde.store?udid=${udid}`);
+                // We add a cache-buster (?t=...) to ensure we get fresh data from the DB
+                const response = await fetch(`https://api.kurde.store?udid=${udid}&t=${Date.now()}`, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+
+                if (!response.ok) {
+                    throw new Error("Network response was not ok: " + response.status);
+                }
+
                 const data = await response.json();
 
-                const statusBox = document.getElementById('statusBox');
-                const title = document.getElementById('title');
-
-                if (data.status === "pending") {
+                if (data.status === "pending" && data.reg_date) {
                     title.innerText = "Order Received!";
                     const seventyTwoHours = 72 * 60 * 60 * 1000;
                     const now = Date.now();
@@ -65,13 +81,20 @@
                         `;
                     }
                 } else {
-                    statusBox.innerHTML = "<p>Registration not found. If you just registered, wait 10 seconds and refresh.</p>";
+                    // This happens if the user just clicked but the Lambda hasn't finished saving yet
+                    statusBox.innerHTML = `
+                        <p>Registration not yet found in the database.</p>
+                        <p>If you just installed the profile, please <b>refresh this page</b> in 10 seconds.</p>
+                        <button onclick="window.location.reload()" class="btn">Refresh Now</button>
+                    `;
                 }
             } catch (err) {
-                document.getElementById('statusBox').innerHTML = "Server Error. Please try again later.";
-                console.error(err);
+                statusBox.innerHTML = "<b>Connection Error</b><br>Cannot reach the Kurde API. Check your internet or CORS settings.";
+                console.error("Fetch Error:", err);
             }
         }
+
+        // Run the function
         getStatus();
     </script>
 </body>
